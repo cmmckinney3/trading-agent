@@ -1,0 +1,575 @@
+{
+  "positions": [
+    {
+      "ticker": "ABT",
+      "shares": 13.312,
+      "cost_basis": 1568.63
+    },
+    {
+      "ticker": "ACHR",
+      "shares": 500.0,
+      "cost_basis": 5111.95
+    },
+    {
+      "ticker": "ADI",
+      "shares": 13.337,
+      "cost_basis": 3029.96
+    },
+    {
+      "ticker": "AFMFX",
+      "shares": 123.782,
+      "cost_basis": 6264.39
+    },
+    {
+      "ticker": "AMP",
+      "shares": 2.056,
+      "cost_basis": 1053.05
+    },
+    {
+      "ticker": "AMX",
+      "shares": 85.291,
+      "cost_basis": 1381.44
+    },
+    {
+      "ticker": "AMZN",
+      "shares": 11.0,
+      "cost_basis": 2052.69
+    },
+    {
+      "ticker": "ANET",
+      "shares": 20.0,
+      "cost_basis": 1977.97
+    },
+    {
+      "ticker": "APIE",
+      "shares": 111.0,
+      "cost_basis": 3169.05
+    },
+    {
+      "ticker": "APUE",
+      "shares": 233.0,
+      "cost_basis": 8428.73
+    },
+    {
+      "ticker": "ATR",
+      "shares": 12.214,
+      "cost_basis": 1967.61
+    },
+    {
+      "ticker": "AVGO",
+      "shares": 62.609,
+      "cost_basis": 15619.91
+    },
+    {
+      "ticker": "BLK",
+      "shares": 4.121,
+      "cost_basis": 4122.49
+    },
+    {
+      "ticker": "BND",
+      "shares": 759.286,
+      "cost_basis": 56676.69
+    },
+    {
+      "ticker": "BNDX",
+      "shares": 473.204,
+      "cost_basis": 23484.78
+    },
+    {
+      "ticker": "BSX",
+      "shares": 15.0,
+      "cost_basis": 1476.84
+    },
+    {
+      "ticker": "CAT",
+      "shares": 2.093,
+      "cost_basis": 774.92
+    },
+    {
+      "ticker": "CDNS",
+      "shares": 7.0,
+      "cost_basis": 1826.33
+    },
+    {
+      "ticker": "CEG",
+      "shares": 27.065,
+      "cost_basis": 9229.79
+    },
+    {
+      "ticker": "COR",
+      "shares": 7.074,
+      "cost_basis": 1687.86
+    },
+    {
+      "ticker": "COST",
+      "shares": 2.017,
+      "cost_basis": 1787.17
+    },
+    {
+      "ticker": "CRM",
+      "shares": 6.044,
+      "cost_basis": 1756.86
+    },
+    {
+      "ticker": "CRWD",
+      "shares": 5.0,
+      "cost_basis": 1530.44
+    },
+    {
+      "ticker": "CSCO",
+      "shares": 28.356,
+      "cost_basis": 1615.83
+    },
+    {
+      "ticker": "CVX",
+      "shares": 8.897,
+      "cost_basis": 1465.88
+    },
+    {
+      "ticker": "DUK",
+      "shares": 1478.132,
+      "cost_basis": 49130.59
+    },
+    {
+      "ticker": "EMR",
+      "shares": 15.367,
+      "cost_basis": 1719.37
+    },
+    {
+      "ticker": "EPD",
+      "shares": 164.463,
+      "cost_basis": 0.0
+    },
+    {
+      "ticker": "EQT",
+      "shares": 38.0,
+      "cost_basis": 2269.67
+    },
+    {
+      "ticker": "EQIX",
+      "shares": 2.067,
+      "cost_basis": 1820.41
+    },
+    {
+      "ticker": "FANG",
+      "shares": 11.422,
+      "cost_basis": 2000.51
+    },
+    {
+      "ticker": "FDMO",
+      "shares": 354.089,
+      "cost_basis": 23931.76
+    },
+    {
+      "ticker": "FQAL",
+      "shares": 379.731,
+      "cost_basis": 25031.45
+    },
+    {
+      "ticker": "FVAL",
+      "shares": 407.756,
+      "cost_basis": 25146.51
+    },
+    {
+      "ticker": "GEV",
+      "shares": 14.025,
+      "cost_basis": 7927.8
+    },
+    {
+      "ticker": "GOOGL",
+      "shares": 14.079,
+      "cost_basis": 2333.05
+    },
+    {
+      "ticker": "HD",
+      "shares": 9.328,
+      "cost_basis": 3816.17
+    },
+    {
+      "ticker": "IBM",
+      "shares": 7.266,
+      "cost_basis": 1169.97
+    },
+    {
+      "ticker": "ICE",
+      "shares": 7.023,
+      "cost_basis": 1103.96
+    },
+    {
+      "ticker": "IEFA",
+      "shares": 295.754,
+      "cost_basis": 21747.14
+    },
+    {
+      "ticker": "IEMG",
+      "shares": 228.873,
+      "cost_basis": 12603.55
+    },
+    {
+      "ticker": "IJH",
+      "shares": 121.232,
+      "cost_basis": 7556.1
+    },
+    {
+      "ticker": "IJR",
+      "shares": 1.0,
+      "cost_basis": 115.4
+    },
+    {
+      "ticker": "ITW",
+      "shares": 8.352,
+      "cost_basis": 1994.64
+    },
+    {
+      "ticker": "IVV",
+      "shares": 23.0,
+      "cost_basis": 13703.1
+    },
+    {
+      "ticker": "IWM",
+      "shares": 17.286,
+      "cost_basis": 3982.8
+    },
+    {
+      "ticker": "JCI",
+      "shares": 21.48,
+      "cost_basis": 1662.12
+    },
+    {
+      "ticker": "JNJ",
+      "shares": 11.458,
+      "cost_basis": 1869.72
+    },
+    {
+      "ticker": "JPM",
+      "shares": 7.563,
+      "cost_basis": 1157.37
+    },
+    {
+      "ticker": "KEYS",
+      "shares": 20.0,
+      "cost_basis": 2653.65
+    },
+    {
+      "ticker": "KO",
+      "shares": 34.439,
+      "cost_basis": 2095.37
+    },
+    {
+      "ticker": "KTB",
+      "shares": 105.22,
+      "cost_basis": 4747.29
+    },
+    {
+      "ticker": "LHX",
+      "shares": 9.234,
+      "cost_basis": 2159.48
+    },
+    {
+      "ticker": "LIN",
+      "shares": 2.076,
+      "cost_basis": 934.27
+    },
+    {
+      "ticker": "LLY",
+      "shares": 2.019,
+      "cost_basis": 1784.8
+    },
+    {
+      "ticker": "LNG",
+      "shares": 8.111,
+      "cost_basis": 1487.71
+    },
+    {
+      "ticker": "LOLDX",
+      "shares": 3799.27,
+      "cost_basis": 14503.97
+    },
+    {
+      "ticker": "MCD",
+      "shares": 7.534,
+      "cost_basis": 2128.29
+    },
+    {
+      "ticker": "MDLZ",
+      "shares": 29.444,
+      "cost_basis": 2015.37
+    },
+    {
+      "ticker": "MDT",
+      "shares": 13.618,
+      "cost_basis": 1130.67
+    },
+    {
+      "ticker": "MET",
+      "shares": 21.879,
+      "cost_basis": 1851.83
+    },
+    {
+      "ticker": "MO",
+      "shares": 55.779,
+      "cost_basis": 2563.99
+    },
+    {
+      "ticker": "MPC",
+      "shares": 8.248,
+      "cost_basis": 1276.51
+    },
+    {
+      "ticker": "MRK",
+      "shares": 14.772,
+      "cost_basis": 1581.56
+    },
+    {
+      "ticker": "MRVL",
+      "shares": 125.264,
+      "cost_basis": 9701.97
+    },
+    {
+      "ticker": "MSFT",
+      "shares": 6.066,
+      "cost_basis": 2090.68
+    },
+    {
+      "ticker": "NDAQ",
+      "shares": 15.276,
+      "cost_basis": 1133.21
+    },
+    {
+      "ticker": "NBIX",
+      "shares": 8.0,
+      "cost_basis": 998.4
+    },
+    {
+      "ticker": "NEE",
+      "shares": 30.099,
+      "cost_basis": 2269.96
+    },
+    {
+      "ticker": "NVO",
+      "shares": 255.268,
+      "cost_basis": 12939.53
+    },
+    {
+      "ticker": "NVDA",
+      "shares": 15.006,
+      "cost_basis": 1942.0
+    },
+    {
+      "ticker": "OKE",
+      "shares": 107.499,
+      "cost_basis": 7197.47
+    },
+    {
+      "ticker": "ORLY",
+      "shares": 15.0,
+      "cost_basis": 1222.81
+    },
+    {
+      "ticker": "PEY",
+      "shares": 249.385,
+      "cost_basis": 4956.75
+    },
+    {
+      "ticker": "PG",
+      "shares": 10.387,
+      "cost_basis": 1779.99
+    },
+    {
+      "ticker": "PH",
+      "shares": 3.037,
+      "cost_basis": 1959.96
+    },
+    {
+      "ticker": "PLD",
+      "shares": 10.444,
+      "cost_basis": 1250.79
+    },
+    {
+      "ticker": "PM",
+      "shares": 14.959,
+      "cost_basis": 1464.7
+    },
+    {
+      "ticker": "PNC",
+      "shares": 9.387,
+      "cost_basis": 1784.72
+    },
+    {
+      "ticker": "RF",
+      "shares": 161.407,
+      "cost_basis": 3002.99
+    },
+    {
+      "ticker": "ROK",
+      "shares": 4.0,
+      "cost_basis": 1640.68
+    },
+    {
+      "ticker": "RY",
+      "shares": 15.571,
+      "cost_basis": 1942.98
+    },
+    {
+      "ticker": "SNOW",
+      "shares": 6.0,
+      "cost_basis": 1338.11
+    },
+    {
+      "ticker": "SO",
+      "shares": 577.526,
+      "cost_basis": 40070.88
+    },
+    {
+      "ticker": "SOBO",
+      "shares": 16.505,
+      "cost_basis": 284.4
+    },
+    {
+      "ticker": "SPOT",
+      "shares": 1.0,
+      "cost_basis": 606.55
+    },
+    {
+      "ticker": "SRE",
+      "shares": 26.137,
+      "cost_basis": 2119.56
+    },
+    {
+      "ticker": "SWK",
+      "shares": 26.906,
+      "cost_basis": 2394.86
+    },
+    {
+      "ticker": "TEL",
+      "shares": 12.256,
+      "cost_basis": 1800.89
+    },
+    {
+      "ticker": "TFC",
+      "shares": 93.092,
+      "cost_basis": 2920.69
+    },
+    {
+      "ticker": "TJX",
+      "shares": 14.247,
+      "cost_basis": 1680.15
+    },
+    {
+      "ticker": "TMO",
+      "shares": 3.015,
+      "cost_basis": 1775.84
+    },
+    {
+      "ticker": "TRP",
+      "shares": 79.912,
+      "cost_basis": 2724.43
+    },
+    {
+      "ticker": "TXN",
+      "shares": 9.399,
+      "cost_basis": 1558.7
+    },
+    {
+      "ticker": "UBER",
+      "shares": 25.0,
+      "cost_basis": 1857.67
+    },
+    {
+      "ticker": "UNP",
+      "shares": 7.236,
+      "cost_basis": 1787.96
+    },
+    {
+      "ticker": "UPS",
+      "shares": 13.336,
+      "cost_basis": 2022.16
+    },
+    {
+      "ticker": "URI",
+      "shares": 2.022,
+      "cost_basis": 1501.24
+    },
+    {
+      "ticker": "V",
+      "shares": 4.054,
+      "cost_basis": 1165.17
+    },
+    {
+      "ticker": "VBR",
+      "shares": 20.737,
+      "cost_basis": 3443.06
+    },
+    {
+      "ticker": "VCOBX",
+      "shares": 4343.103,
+      "cost_basis": 78315.71
+    },
+    {
+      "ticker": "VEXRX",
+      "shares": 183.886,
+      "cost_basis": 20456.46
+    },
+    {
+      "ticker": "VGCAX",
+      "shares": 5446.561,
+      "cost_basis": 105414.89
+    },
+    {
+      "ticker": "VOE",
+      "shares": 21.821,
+      "cost_basis": 3007.22
+    },
+    {
+      "ticker": "VOO",
+      "shares": 4.632,
+      "cost_basis": 2958.99
+    },
+    {
+      "ticker": "VRTX",
+      "shares": 4.0,
+      "cost_basis": 1580.17
+    },
+    {
+      "ticker": "VTI",
+      "shares": 263.494,
+      "cost_basis": 76135.69
+    },
+    {
+      "ticker": "VTRIX",
+      "shares": 1320.281,
+      "cost_basis": 56751.28
+    },
+    {
+      "ticker": "VTV",
+      "shares": 2.0,
+      "cost_basis": 341.27
+    },
+    {
+      "ticker": "VWILX",
+      "shares": 478.466,
+      "cost_basis": 53945.21
+    },
+    {
+      "ticker": "VWNAX",
+      "shares": 1100.456,
+      "cost_basis": 93767.0
+    },
+    {
+      "ticker": "VWUAX",
+      "shares": 494.44,
+      "cost_basis": 91495.82
+    },
+    {
+      "ticker": "VXUS",
+      "shares": 608.402,
+      "cost_basis": 40091.67
+    },
+    {
+      "ticker": "VZ",
+      "shares": 165.263,
+      "cost_basis": 5737.62
+    }
+  ],
+  "cash": 103454.83
+}
