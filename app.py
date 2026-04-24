@@ -438,7 +438,7 @@ with st.sidebar:
     positions_json = json.dumps(st.session_state.portfolio["positions"], sort_keys=True)
     col_ref, col_time = st.columns([1, 2])
     with col_ref:
-        if st.button("↺ Refresh", key="sb_refresh", use_container_width=True):
+        if st.button("↺ Refresh", key="sb_refresh", width='stretch'):
             _get_portfolio_value_cached.clear()
             st.rerun()
 
@@ -725,7 +725,7 @@ with tab0:
 
     if not st.session_state.gmail_service:
         if os.path.exists(CREDENTIALS_FILE):
-            if st.button("🔐 Start Gmail Auth", use_container_width=True):
+            if st.button("🔐 Start Gmail Auth", width='stretch'):
                 try:
                     with st.spinner("Opening browser for Google auth..."):
                         authenticate_gmail()
@@ -747,11 +747,11 @@ with tab0:
     else:
         col_refresh, col_summarize, col_clear = st.columns(3)
         with col_refresh:
-            refresh_emails = st.button("🔄 Refresh Emails", use_container_width=True)
+            refresh_emails = st.button("🔄 Refresh Emails", width='stretch')
         with col_summarize:
-            summarize = st.button("🤖 Summarize with AI", use_container_width=True)
+            summarize = st.button("🤖 Summarize with AI", width='stretch')
         with col_clear:
-            mark_all_read = st.button("✅ Mark All Read", use_container_width=True)
+            mark_all_read = st.button("✅ Mark All Read", width='stretch')
 
         if refresh_emails:
             with st.spinner("Fetching emails..."):
@@ -818,7 +818,7 @@ with tab0:
 
     if not st.session_state.calendar_service:
         if os.path.exists(CREDENTIALS_FILE):
-            if st.button("📅 Connect Google Calendar", use_container_width=True):
+            if st.button("📅 Connect Google Calendar", width='stretch'):
                 try:
                     with st.spinner("Opening browser for Google Calendar auth..."):
                         authenticate_calendar()
@@ -833,12 +833,12 @@ with tab0:
     else:
         cal_refresh, cal_upcoming = st.columns(2)
         with cal_refresh:
-            if st.button("🔄 Refresh Calendar", use_container_width=True):
+            if st.button("🔄 Refresh Calendar", width='stretch'):
                 with st.spinner("Fetching calendar..."):
                     st.session_state.calendar_events = fetch_todays_events(st.session_state.calendar_service)
                 st.rerun()
         with cal_upcoming:
-            if st.button("📆 Show Next 5 Days", use_container_width=True):
+            if st.button("📆 Show Next 5 Days", width='stretch'):
                 with st.spinner("Fetching upcoming events..."):
                     st.session_state.calendar_events = fetch_upcoming_events(st.session_state.calendar_service, days=5)
                 st.rerun()
@@ -875,7 +875,7 @@ with tab0:
     st.markdown("### AI Morning Briefing")
     st.caption("Combines weather, market, portfolio, and email context into a daily briefing")
 
-    if st.button("📊 Generate Briefing", use_container_width=True):
+    if st.button("📊 Generate Briefing", width='stretch'):
         with st.spinner("Generating your morning briefing..."):
             weather_ctx = ""
             if weather:
@@ -971,7 +971,7 @@ with tab1:
             key="chat_input",
         )
     with col_btn:
-        send = st.button("SEND", use_container_width=True)
+        send = st.button("SEND", width='stretch')
 
     quick_cols = st.columns(4)
     quick_prompts = [
@@ -982,7 +982,7 @@ with tab1:
     ]
     for i, (col, prompt) in enumerate(zip(quick_cols, quick_prompts)):
         with col:
-            if st.button(prompt, key=f"quick_{i}", use_container_width=True):
+            if st.button(prompt, key=f"quick_{i}", width='stretch'):
                 user_input = prompt
                 send = True
 
@@ -1012,7 +1012,7 @@ with tab2:
 
     col_run, col_time = st.columns([2, 3])
     with col_run:
-        run_screener = st.button("🔍 RUN SCREENER", use_container_width=True)
+        run_screener = st.button("🔍 RUN SCREENER", width='stretch')
     with col_time:
         if st.session_state.last_screener_run:
             st.caption(f"Last run: {st.session_state.last_screener_run}")
@@ -1036,7 +1036,7 @@ with tab3:
     with col_ticker:
         analyze_ticker = st.text_input("Enter ticker symbol", placeholder="e.g. NVDA", label_visibility="collapsed", key="analyze_input")
     with col_btn3:
-        analyze_btn = st.button("ANALYZE", use_container_width=True)
+        analyze_btn = st.button("ANALYZE", width='stretch')
 
     if analyze_btn and analyze_ticker:
         ticker = analyze_ticker.upper().strip()
@@ -1083,7 +1083,7 @@ with tab3:
                     margin=dict(l=10, r=10, t=10, b=10),
                     height=320,
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
             if tech:
                 t_cols = st.columns(6)
@@ -1157,7 +1157,7 @@ with tab4:
                         xaxis=dict(visible=False), yaxis=dict(visible=False),
                         showlegend=False,
                     )
-                    st.plotly_chart(fig2, use_container_width=True)
+                    st.plotly_chart(fig2, width='stretch')
 
     st.markdown("---")
     st.markdown(f"""
@@ -1247,7 +1247,7 @@ with tab5:
 
     col_save, col_test = st.columns(2)
     with col_save:
-        if st.button("💾 Save Settings", use_container_width=True):
+        if st.button("💾 Save Settings", width='stretch'):
             new_config = {
                 "provider": provider,
                 "api_key": api_key,
@@ -1261,7 +1261,7 @@ with tab5:
             st.rerun()
 
     with col_test:
-        if st.button("🧪 Test Connection", use_container_width=True):
+        if st.button("🧪 Test Connection", width='stretch'):
             if not api_key:
                 st.error("Enter an API key first.")
             else:
