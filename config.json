@@ -1,7 +1,0 @@
-{
-  "provider": "Alibaba DashScope",
-  "api_key": "sk-f00a6899de104312be264744f3d8c951",
-  "base_url": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
-  "model": "qwen-max",
-  "city": "Charlotte, NC"
-}
