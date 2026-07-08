@@ -49,7 +49,7 @@ def get_calendar_service():
 
 
 def fetch_todays_events(service) -> list:
-    now = datetime.now(timezone.utc)
+    now = datetime.now().astimezone()
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = start_of_day + timedelta(days=1)
 
@@ -67,7 +67,7 @@ def fetch_todays_events(service) -> list:
 
 
 def fetch_upcoming_events(service, days: int = 3) -> list:
-    now = datetime.now(timezone.utc)
+    now = datetime.now().astimezone()
     end = now + timedelta(days=days)
 
     try:

@@ -4,11 +4,14 @@ import yfinance as yf
 from datetime import datetime
 import os
 import json
+import markdown as md_lib
 
-from utils.config import load_config, save_config, load_portfolio, save_portfolio, PROVIDER_PRESETS
-from utils.market_data import get_quote, get_portfolio_value, get_price_history, get_technicals, screen_momentum_tickers
-from utils.agent import chat_with_agent, get_trade_recommendation, run_daily_screener, SYSTEM_PROMPT
+from utils.config import load_config, save_config, load_portfolio, save_portfolio, PROVIDER_PRESETS, DEFAULT_WATCHLIST
+from utils.market_data import get_quote, get_portfolio_value, get_price_history, get_technicals, screen_momentum_tickers, get_news, get_earnings_date
+from utils.agent import chat_with_agent, chat_with_agent_tools, get_trade_recommendation, run_daily_screener, SYSTEM_PROMPT
+from utils.code_agent import run_code_agent
 from utils.llm import chat_completions_create
+from utils.journal import load_journal, log_trade, close_trade, check_alerts
 from utils.weather import get_weather
 from utils.email import (
     fetch_unread_emails, get_auth_url, authenticate_gmail, get_gmail_service, mark_as_read,
@@ -182,10 +185,17 @@ html, body, [class*="css"] {
     margin: 8px 15% 8px 0;
     font-size: 14px;
     font-family: 'Space Grotesk', system-ui, sans-serif;
-    white-space: pre-wrap;
     box-shadow: var(--shadow-sm);
     line-height: 1.6;
 }
+
+.chat-agent p { margin: 0 0 8px 0; }
+.chat-agent p:last-child { margin-bottom: 0; }
+.chat-agent ul, .chat-agent ol { margin: 4px 0 8px 0; padding-left: 20px; }
+.chat-agent li { margin: 2px 0; }
+.chat-agent h1, .chat-agent h2, .chat-agent h3 { margin: 10px 0 4px 0; font-size: 1em; font-weight: 600; }
+.chat-agent strong { font-weight: 600; }
+.chat-agent code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: rgba(0,0,0,.15); padding: 1px 4px; border-radius: 3px; }
 
 .rec-card {
     background: var(--panel);
@@ -199,8 +209,18 @@ html, body, [class*="css"] {
     -webkit-backdrop-filter: blur(16px);
     font-size: 14px;
     line-height: 1.7;
-    white-space: pre-wrap;
 }
+
+.rec-card p { margin: 0 0 10px 0; }
+.rec-card p:last-child { margin-bottom: 0; }
+.rec-card ul, .rec-card ol { margin: 4px 0 10px 0; padding-left: 20px; }
+.rec-card li { margin: 3px 0; }
+.rec-card h1, .rec-card h2, .rec-card h3 { margin: 12px 0 4px 0; font-weight: 600; }
+.rec-card h1 { font-size: 1.1em; }
+.rec-card h2 { font-size: 1em; }
+.rec-card h3 { font-size: 0.95em; }
+.rec-card strong { font-weight: 600; }
+.rec-card code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: rgba(0,0,0,.15); padding: 1px 4px; border-radius: 3px; }
 
 .page-header {
     font-family: 'JetBrains Mono', monospace;
@@ -534,9 +554,19 @@ with st.sidebar:
 st.markdown('<div class="page-header">AI Swing Trading Terminal</div>', unsafe_allow_html=True)
 st.markdown('<div class="page-title">TradeDesk <span class="accent">AI</span></div>', unsafe_allow_html=True)
 
-tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
+# ── Position alerts (piggybacking on already-fetched pf prices) ───────────────
+for _p in pf["positions"]:
+    _price = _p.get("current_price")
+    if _price is None:
+        continue
+    if _p.get("target") and _price >= _p["target"]:
+        st.success(f"🎯 **{_p['ticker']} TARGET HIT** — current ${_price:.2f} ≥ target ${_p['target']:.2f}")
+    if _p.get("stop") and _price <= _p["stop"]:
+        st.error(f"🛑 **{_p['ticker']} STOP TRIGGERED** — current ${_price:.2f} ≤ stop ${_p['stop']:.2f}")
+
+tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Morning Briefing", "Analyst Chat", "Screener",
-    "Ticker Analysis", "Positions", "Settings",
+    "Ticker Analysis", "Positions", "Settings", "Journal", "Code Agent",
 ])
 
 
@@ -809,7 +839,8 @@ with tab0:
         if st.session_state.gmail_summary:
             st.markdown("---")
             st.markdown("**AI Email Summary**")
-            st.markdown(f'<div class="chat-agent">🤖 {st.session_state.gmail_summary}</div>', unsafe_allow_html=True)
+            _html = md_lib.markdown(st.session_state.gmail_summary, extensions=["nl2br"])
+            st.markdown(f'<div class="chat-agent">🤖 {_html}</div>', unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -939,7 +970,8 @@ Be concise, direct, and actionable. No fluff."""
             st.session_state.morning_briefing = response["content"]
 
     if st.session_state.morning_briefing:
-        st.markdown(f'<div class="rec-card">{st.session_state.morning_briefing}</div>', unsafe_allow_html=True)
+        _html = md_lib.markdown(st.session_state.morning_briefing, extensions=["nl2br"])
+        st.markdown(f'<div class="rec-card">{_html}</div>', unsafe_allow_html=True)
 
 
 # ── Tab 1: Chat ───────────────────────────────────────────────────────────────
@@ -958,7 +990,8 @@ with tab1:
             if msg["role"] == "user":
                 st.markdown(f'<div class="chat-user">🧑 {msg["content"].split("USER QUESTION:")[-1].strip()}</div>', unsafe_allow_html=True)
             else:
-                st.markdown(f'<div class="chat-agent">🤖 {msg["content"]}</div>', unsafe_allow_html=True)
+                html_content = md_lib.markdown(msg["content"], extensions=["nl2br"])
+                st.markdown(f'<div class="chat-agent">🤖 {html_content}</div>', unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -989,11 +1022,13 @@ with tab1:
     if send and user_input:
         with st.spinner("Analyzing..."):
             portfolio_context = {**st.session_state.portfolio, "total_value": total_with_cash}
-            response = chat_with_agent(
+            watchlist = st.session_state.config.get("watchlist", DEFAULT_WATCHLIST)
+            response = chat_with_agent_tools(
                 user_input,
                 st.session_state.conversation,
                 portfolio_context,
                 ai_config,
+                watchlist=watchlist,
             )
             st.session_state.conversation.append({"role": "user", "content": user_input})
             st.session_state.conversation.append({"role": "assistant", "content": response})
@@ -1020,12 +1055,14 @@ with tab2:
     if run_screener:
         with st.spinner("Scanning market... this takes ~30 seconds"):
             portfolio_context = {**st.session_state.portfolio, "total_value": total_with_cash}
-            result = run_daily_screener(portfolio_context, ai_config)
+            watchlist = st.session_state.config.get("watchlist", DEFAULT_WATCHLIST)
+            result = run_daily_screener(portfolio_context, ai_config, watchlist=watchlist)
             st.session_state.screener_results = result
             st.session_state.last_screener_run = datetime.now().strftime("%b %d, %Y %I:%M %p")
 
     if st.session_state.screener_results:
-        st.markdown(f'<div class="rec-card">{st.session_state.screener_results}</div>', unsafe_allow_html=True)
+        _html = md_lib.markdown(st.session_state.screener_results, extensions=["nl2br"])
+        st.markdown(f'<div class="rec-card">{_html}</div>', unsafe_allow_html=True)
 
 
 # ── Tab 3: Ticker Analysis ────────────────────────────────────────────────────
@@ -1045,6 +1082,8 @@ with tab3:
             quote = get_quote(ticker)
             tech = get_technicals(ticker)
             hist = get_price_history(ticker)
+            news = get_news(ticker, limit=5)
+            earnings = get_earnings_date(ticker)
 
         if not quote:
             st.error(f"Could not fetch data for {ticker}. Check the symbol.")
@@ -1109,11 +1148,32 @@ with tab3:
                             """, unsafe_allow_html=True)
 
             st.markdown("---")
+
+            # Earnings + News
+            if earnings:
+                st.info(f"📅 Next earnings: **{earnings}**")
+
+            if news:
+                st.markdown("**Recent News**")
+                news_html = ""
+                for item in news:
+                    news_html += (
+                        f'<div style="padding:8px 12px;margin-bottom:6px;background:rgba(7,13,26,.55);'
+                        f'border:1px solid rgba(148,163,184,.10);border-radius:9px;'
+                        f'font-family:Space Grotesk,sans-serif;font-size:13px">'
+                        f'<span style="color:#EEF2FF">{item["title"]}</span>'
+                        f'<span style="color:rgba(100,116,139,.60);font-size:11px;margin-left:10px">'
+                        f'{item["publisher"]} · {item["date"]}</span></div>'
+                    )
+                st.markdown(news_html, unsafe_allow_html=True)
+
+            st.markdown("---")
             st.markdown("**AI Trade Recommendation**")
             with st.spinner("AI is analyzing..."):
                 portfolio_context = {**st.session_state.portfolio, "total_value": total_with_cash}
                 rec = get_trade_recommendation(ticker, portfolio_context, ai_config)
-            st.markdown(f'<div class="rec-card">{rec}</div>', unsafe_allow_html=True)
+            _html = md_lib.markdown(rec, extensions=["nl2br"])
+            st.markdown(f'<div class="rec-card">{_html}</div>', unsafe_allow_html=True)
 
 
 # ── Tab 4: Positions ──────────────────────────────────────────────────────────
@@ -1123,7 +1183,25 @@ with tab4:
     if not pf["positions"]:
         st.info("No positions yet. Add some in the sidebar.")
     else:
-        for pos in pf["positions"]:
+        sort_opt = st.selectbox(
+            "Sort by",
+            ["Value (High → Low)", "Value (Low → High)", "Alphabetical", "P&L (High → Low)", "P&L (Low → High)"],
+            index=0,
+            label_visibility="collapsed",
+        )
+        sorted_positions = list(pf["positions"])
+        if sort_opt == "Value (High → Low)":
+            sorted_positions.sort(key=lambda p: p.get("value", 0), reverse=True)
+        elif sort_opt == "Value (Low → High)":
+            sorted_positions.sort(key=lambda p: p.get("value", 0))
+        elif sort_opt == "Alphabetical":
+            sorted_positions.sort(key=lambda p: p["ticker"])
+        elif sort_opt == "P&L (High → Low)":
+            sorted_positions.sort(key=lambda p: p.get("gain_loss") or 0, reverse=True)
+        elif sort_opt == "P&L (Low → High)":
+            sorted_positions.sort(key=lambda p: p.get("gain_loss") or 0)
+
+        for pos in sorted_positions:
             price = pos.get("current_price", 0)
             val = pos.get("value", 0)
             chg = pos.get("change_pct", 0)
@@ -1158,6 +1236,30 @@ with tab4:
                         showlegend=False,
                     )
                     st.plotly_chart(fig2, width='stretch')
+
+                st.markdown("**Price Alerts**")
+                al_c1, al_c2 = st.columns(2)
+                with al_c1:
+                    new_target = st.number_input(
+                        "Target $", min_value=0.0, step=0.01,
+                        value=float(pos.get("target") or 0),
+                        key=f"target_{pos['ticker']}",
+                    )
+                with al_c2:
+                    new_stop = st.number_input(
+                        "Stop $", min_value=0.0, step=0.01,
+                        value=float(pos.get("stop") or 0),
+                        key=f"stop_{pos['ticker']}",
+                    )
+                if st.button("Set Alerts", key=f"set_alerts_{pos['ticker']}"):
+                    for _p in st.session_state.portfolio["positions"]:
+                        if _p["ticker"] == pos["ticker"]:
+                            _p["target"] = new_target if new_target > 0 else None
+                            _p["stop"] = new_stop if new_stop > 0 else None
+                    save_portfolio(st.session_state.portfolio)
+                    _get_portfolio_value_cached.clear()
+                    st.success("Alert levels saved!")
+                    st.rerun()
 
     st.markdown("---")
     st.markdown(f"""
@@ -1230,6 +1332,17 @@ with tab5:
             placeholder="e.g. New York,NY or London",
         )
 
+        st.markdown("### Screener Watchlist")
+        st.caption("Tickers the screener checks for momentum setups. Comma-separated.")
+        current_watchlist = st.session_state.config.get("watchlist", DEFAULT_WATCHLIST)
+        watchlist_input = st.text_area(
+            "Watchlist tickers",
+            value=", ".join(current_watchlist),
+            height=110,
+            key="watchlist_input",
+            label_visibility="collapsed",
+        )
+
         st.markdown("---")
         st.markdown("### About this provider")
         st.info(preset["info"])
@@ -1239,7 +1352,8 @@ with tab5:
             f"Provider : {st.session_state.config.get('provider', '—')}\n"
             f"Model    : {st.session_state.config.get('model', '—')}\n"
             f"API key  : {'set ✓' if st.session_state.config.get('api_key') else 'not set'}\n"
-            f"City     : {st.session_state.config.get('city') or '—'}",
+            f"City     : {st.session_state.config.get('city') or '—'}\n"
+            f"Watchlist: {len(current_watchlist)} tickers",
             language=None,
         )
 
@@ -1248,12 +1362,14 @@ with tab5:
     col_save, col_test = st.columns(2)
     with col_save:
         if st.button("💾 Save Settings", width='stretch'):
+            parsed_watchlist = [t.strip().upper() for t in watchlist_input.split(",") if t.strip()]
             new_config = {
                 "provider": provider,
                 "api_key": api_key,
                 "base_url": base_url,
                 "model": model,
                 "city": city_input,
+                "watchlist": parsed_watchlist if parsed_watchlist else DEFAULT_WATCHLIST,
             }
             save_config(new_config)
             st.session_state.config = new_config
@@ -1277,3 +1393,232 @@ with tab5:
                         st.success(f"Connected! Model replied: {result['content'][:80]}")
                     except Exception as e:
                         st.error(f"Connection failed: {e}")
+
+
+# ── Tab 6: Journal ────────────────────────────────────────────────────────────
+with tab6:
+    st.markdown("**Trade Journal**")
+    st.caption("Log and track trade recommendations, set targets and stops, and review your track record.")
+
+    journal = load_journal()
+    open_trades = [t for t in journal if t["status"] == "open"]
+    closed_trades = [t for t in journal if t["status"] == "closed"]
+
+    # ── Alert check ───────────────────────────────────────────────────────────
+    j_col1, j_col2 = st.columns([1, 4])
+    with j_col1:
+        check_j_alerts = st.button("🔔 Check Alerts", key="j_check_alerts", width='stretch')
+    if check_j_alerts and open_trades:
+        with st.spinner("Checking prices against open trades..."):
+            j_alerts = check_alerts(journal)
+        if j_alerts:
+            for ja in j_alerts:
+                tr = ja["trade"]
+                if ja["type"] == "TARGET_HIT":
+                    st.success(f"🎯 **{tr['ticker']} TARGET HIT** — current ${ja['current_price']:.2f} ≥ target ${tr['target']:.2f}")
+                else:
+                    st.error(f"🛑 **{tr['ticker']} STOP TRIGGERED** — current ${ja['current_price']:.2f} ≤ stop ${tr['stop']:.2f}")
+        else:
+            st.info("No alerts — all open trades within range.")
+
+    st.markdown("---")
+
+    # ── Log new trade ─────────────────────────────────────────────────────────
+    with st.expander("➕ Log New Trade"):
+        lc1, lc2 = st.columns(2)
+        with lc1:
+            j_ticker = st.text_input("Ticker", key="j_ticker", placeholder="NVDA")
+            j_action = st.selectbox("Action", ["BUY", "SELL", "SHORT"], key="j_action")
+            j_entry = st.number_input("Entry Price $", min_value=0.0, step=0.01, key="j_entry")
+        with lc2:
+            j_target = st.number_input("Target Price $", min_value=0.0, step=0.01, key="j_target")
+            j_stop = st.number_input("Stop Loss $", min_value=0.0, step=0.01, key="j_stop")
+            j_notes = st.text_area("Notes / Thesis", key="j_notes", height=80, placeholder="Why this trade?")
+        if st.button("Log Trade", key="j_log_btn"):
+            if j_ticker and j_entry > 0:
+                log_trade(
+                    j_ticker, j_action, j_entry,
+                    j_target if j_target > 0 else None,
+                    j_stop if j_stop > 0 else None,
+                    j_notes,
+                )
+                st.success(f"Logged {j_action} {j_ticker.upper()} @ ${j_entry:.2f}")
+                st.rerun()
+            else:
+                st.warning("Enter a ticker and entry price.")
+
+    st.markdown("---")
+
+    # ── Open trades ───────────────────────────────────────────────────────────
+    if open_trades:
+        st.markdown(f"### Open Trades ({len(open_trades)})")
+        for trade in reversed(open_trades):
+            label = f"{trade['action']} {trade['ticker']} @ ${trade['entry_price']:.2f} — {trade['logged_at'][:10]}"
+            with st.expander(label):
+                oc1, oc2, oc3 = st.columns(3)
+                with oc1:
+                    st.metric("Entry", f"${trade['entry_price']:.2f}")
+                with oc2:
+                    st.metric("Target", f"${trade['target']:.2f}" if trade.get("target") else "—")
+                with oc3:
+                    st.metric("Stop", f"${trade['stop']:.2f}" if trade.get("stop") else "—")
+                if trade.get("notes"):
+                    st.caption(trade["notes"])
+                ec1, ec2 = st.columns([2, 1])
+                with ec1:
+                    exit_price = st.number_input("Exit Price $", min_value=0.0, step=0.01, key=f"exit_{trade['id']}")
+                with ec2:
+                    if st.button("Close Trade", key=f"close_{trade['id']}", width='stretch'):
+                        if exit_price > 0:
+                            close_trade(trade["id"], exit_price)
+                            st.success("Trade closed and P&L recorded!")
+                            st.rerun()
+                        else:
+                            st.warning("Enter an exit price.")
+    else:
+        st.info("No open trades. Log one above.")
+
+    # ── Closed trades / track record ─────────────────────────────────────────
+    if closed_trades:
+        st.markdown("---")
+        st.markdown("### Track Record")
+        wins = [t for t in closed_trades if (t.get("pnl_pct") or 0) > 0]
+        losses = [t for t in closed_trades if (t.get("pnl_pct") or 0) <= 0]
+        avg_pnl = sum(t["pnl_pct"] for t in closed_trades if t.get("pnl_pct") is not None) / len(closed_trades) if closed_trades else 0
+
+        sc1, sc2, sc3, sc4 = st.columns(4)
+        sc1.metric("Total Trades", len(closed_trades))
+        sc2.metric("Winners", len(wins))
+        sc3.metric("Win Rate", f"{len(wins) / len(closed_trades) * 100:.0f}%" if closed_trades else "—")
+        sc4.metric("Avg P&L", f"{avg_pnl:+.1f}%")
+
+        st.markdown("**History**")
+        for trade in reversed(closed_trades):
+            pnl = trade.get("pnl_pct")
+            pnl_color = "var(--green)" if pnl and pnl > 0 else "var(--red)"
+            pnl_str = f"{pnl:+.1f}%" if pnl is not None else "—"
+            exit_str = f"${trade['exit_price']:.2f}" if trade.get("exit_price") else "—"
+            notes_html = f' <span style="color:var(--faint)">| {trade["notes"][:60]}</span>' if trade.get("notes") else ""
+            st.markdown(f"""
+            <div class="metric-card" style="padding:10px 14px;margin-bottom:6px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:#EEF2FF">{trade['action']} {trade['ticker']}</span>
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-left:10px">{trade['logged_at'][:10]}</span>
+                    </div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:{pnl_color}">{pnl_str}</div>
+                </div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-top:4px">
+                    Entry ${trade['entry_price']:.2f} → Exit {exit_str}{notes_html}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+
+# ── Tab 7: Code Agent ─────────────────────────────────────────────────────────
+with tab7:
+    st.markdown("### Code Agent")
+    st.caption("Point the agent at any codebase and give it a task. It will read, edit, and create files autonomously.")
+
+    st.markdown("---")
+
+    # ── Config row ────────────────────────────────────────────────────────────
+    path_col, rounds_col = st.columns([4, 1])
+    with path_col:
+        ca_path = st.text_input(
+            "Codebase path",
+            value=os.getcwd(),
+            placeholder="/path/to/your/project",
+            key="ca_path",
+        )
+    with rounds_col:
+        ca_max_rounds = st.number_input(
+            "Max rounds",
+            min_value=1,
+            max_value=50,
+            value=20,
+            key="ca_max_rounds",
+            help="Hard ceiling on LLM iterations. The agent calls mark_complete when it decides it's done.",
+        )
+
+    # ── Task selection ────────────────────────────────────────────────────────
+    TASK_PRESETS = {
+        "Custom task": "",
+        "Improve code quality and readability": "Review the codebase and improve code quality and readability. Look for duplicated logic, unclear naming, dead code, and inconsistent patterns. Fix what you find.",
+        "Add error handling": "Review the codebase and add robust error handling and input validation where it is missing or insufficient.",
+        "Refactor to reduce duplication": "Find duplicated code and logic across the codebase and refactor it into shared helpers or utilities.",
+        "Add type hints": "Add Python type hints to all functions and methods that are missing them, following the existing style.",
+        "Write a README": "Create a comprehensive README.md for this project — overview, setup instructions, usage, and architecture.",
+        "Add logging": "Add structured logging throughout the codebase using Python's logging module, replacing any bare print statements.",
+    }
+
+    preset_choice = st.selectbox(
+        "Quick task preset",
+        list(TASK_PRESETS.keys()),
+        key="ca_preset",
+    )
+
+    ca_task = st.text_area(
+        "Task description",
+        value=TASK_PRESETS[preset_choice],
+        height=110,
+        placeholder="Describe exactly what you want the agent to do...",
+        key="ca_task",
+    )
+
+    # ── Run button ────────────────────────────────────────────────────────────
+    if st.button("Run Agent", key="ca_run", type="primary", width="stretch"):
+        if not ca_task.strip():
+            st.warning("Enter a task description.")
+        elif not ca_path.strip():
+            st.warning("Enter a codebase path.")
+        else:
+            with st.status("Agent running...", expanded=True) as ca_status:
+                for event in run_code_agent(ca_task, ca_path, ai_config, max_rounds=ca_max_rounds):
+                    etype = event["type"]
+
+                    if etype == "round":
+                        st.markdown(f"**Round {event['round']} / {event['max']}**")
+
+                    elif etype == "thought":
+                        st.markdown(event["content"])
+
+                    elif etype == "tool_call":
+                        name = event["name"]
+                        args = event["args"]
+                        if name == "list_files":
+                            label = args.get("pattern", "**/*")
+                            st.write(f"📁 `list_files` — `{args.get('directory', '.')}` / `{label}`")
+                        elif name == "read_file":
+                            st.write(f"📄 `read_file` — `{args.get('path')}`")
+                        elif name == "write_file":
+                            st.write(f"✏️ `write_file` — `{args.get('path')}`")
+                        elif name == "mark_complete":
+                            st.write("✅ `mark_complete`")
+                        else:
+                            st.write(f"🔧 `{name}`")
+
+                    elif etype == "tool_result":
+                        result = event["result"]
+                        if result.get("error"):
+                            st.error(f"Tool error: {result['error']}")
+
+                    elif etype in ("done", "max_rounds"):
+                        st.markdown("---")
+                        changed = event.get("changed_files", [])
+                        if changed:
+                            st.markdown(f"**Files changed ({len(changed)}):**")
+                            for f in changed:
+                                st.write(f"• `{f}`")
+                        summary = event.get("summary") or event.get("message", "")
+                        if summary:
+                            st.markdown("**Summary**")
+                            st.markdown(summary)
+                        if etype == "done":
+                            ca_status.update(label="Agent complete", state="complete")
+                        else:
+                            ca_status.update(label=f"Stopped — {event['message']}", state="error")
+
+                    elif etype == "error":
+                        st.error(event["message"])
+                        ca_status.update(label="Agent error", state="error")

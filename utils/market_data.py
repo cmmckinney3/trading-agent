@@ -5,6 +5,46 @@ import numpy as np
 from datetime import datetime, timedelta
 
 
+def get_news(ticker: str, limit: int = 5) -> list:
+    try:
+        t = yf.Ticker(ticker)
+        raw = t.news or []
+        results = []
+        for item in raw[:limit]:
+            content = item.get("content", {})
+            if isinstance(content, dict) and content:
+                title = content.get("title", "")
+                pub = content.get("provider", {}).get("displayName", "")
+                date_str = (content.get("pubDate") or "")[:10]
+            else:
+                title = item.get("title", "")
+                pub = item.get("publisher", "")
+                ts = item.get("providerPublishTime", 0)
+                date_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d") if ts else ""
+            if title:
+                results.append({"title": title, "publisher": pub, "date": date_str})
+        return results
+    except Exception:
+        return []
+
+
+def get_earnings_date(ticker: str) -> str | None:
+    try:
+        t = yf.Ticker(ticker)
+        cal = t.calendar
+        if isinstance(cal, dict):
+            dates = cal.get("Earnings Date", [])
+            if dates:
+                d = dates[0]
+                return str(d.date()) if hasattr(d, "date") else str(d)[:10]
+        elif hasattr(cal, "columns") and len(cal.columns) > 0:
+            col = cal.columns[0]
+            return str(col.date()) if hasattr(col, "date") else str(col)[:10]
+        return None
+    except Exception:
+        return None
+
+
 def get_quote(ticker: str) -> dict:
     """Get current quote for a ticker."""
     try:
@@ -122,9 +162,9 @@ def get_portfolio_value(positions: list) -> dict:
     return {"positions": enriched, "total_value": round(total, 2)}
 
 
-def screen_momentum_tickers() -> list:
+def screen_momentum_tickers(watchlist: list = None) -> list:
     """Screen a watchlist of high-momentum candidates."""
-    candidates = [
+    candidates = watchlist or [
         "NVDA", "AMD", "TSLA", "MSTR", "PLTR", "SOFI", "COIN",
         "SMCI", "IONQ", "RKLB", "LUNR", "JOBY", "ACHR", "RIVN",
         "HOOD", "UPST", "AFRM", "SOUN", "BBAI", "RGTI",

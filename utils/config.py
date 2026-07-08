@@ -25,6 +25,12 @@ PROVIDER_PRESETS = {
         "placeholder": "gsk_...",
         "info": "Get your key at console.groq.com. Very fast inference with a generous free tier.",
     },
+    "LM Studio": {
+        "base_url": "http://localhost:1234/v1",
+        "default_model": "qwen3.6-27b",
+        "placeholder": "lm-studio",
+        "info": "Local LM Studio server (default port 1234). Use any non-empty string as the API key — LM Studio does not validate it. Make sure LM Studio is running and a model is loaded.",
+    },
     "Custom (OpenAI-compatible)": {
         "base_url": "",
         "default_model": "",
@@ -49,12 +55,20 @@ def save_portfolio(portfolio: dict) -> None:
         json.dump(portfolio, f, indent=2)
 
 
+DEFAULT_WATCHLIST = [
+    "NVDA", "AMD", "TSLA", "MSTR", "PLTR", "SOFI", "COIN",
+    "SMCI", "IONQ", "RKLB", "LUNR", "JOBY", "ACHR", "RIVN",
+    "HOOD", "UPST", "AFRM", "SOUN", "BBAI", "RGTI",
+    "SOXL", "TQQQ", "LABU", "FNGU",
+]
+
 DEFAULT_CONFIG = {
     "provider": "OpenAI",
     "api_key": "",
     "base_url": "https://api.openai.com/v1",
     "model": "gpt-4o-mini",
     "city": "",
+    "watchlist": DEFAULT_WATCHLIST,
 }
 
 

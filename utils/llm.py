@@ -5,11 +5,12 @@ from typing import Any, Dict, List, Optional
 def chat_completions_create(
     *,
     model: str,
-    messages: List[Dict[str, str]],
+    messages: List[Dict],
     temperature: float = 0.7,
     max_tokens: Optional[int] = None,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
+    tools: Optional[List[Dict]] = None,
 ) -> Dict[str, Any]:
     if not api_key:
         api_key = (
@@ -42,7 +43,24 @@ def chat_completions_create(
     }
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+    if tools:
+        kwargs["tools"] = tools
 
     resp = client.chat.completions.create(**kwargs)
-    content = (resp.choices[0].message.content or "").strip()
-    return {"content": content, "raw": resp}
+    choice = resp.choices[0]
+    msg = choice.message
+    content = (msg.content or "").strip()
+
+    tool_calls = None
+    tool_calls_raw = None
+    if msg.tool_calls:
+        tool_calls = [
+            {"id": tc.id, "name": tc.function.name, "arguments": tc.function.arguments}
+            for tc in msg.tool_calls
+        ]
+        tool_calls_raw = [
+            {"id": tc.id, "type": "function", "function": {"name": tc.function.name, "arguments": tc.function.arguments}}
+            for tc in msg.tool_calls
+        ]
+
+    return {"content": content, "tool_calls": tool_calls, "tool_calls_raw": tool_calls_raw, "raw": resp}

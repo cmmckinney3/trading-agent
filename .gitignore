@@ -9,6 +9,7 @@ token_*.json
 *_secret*
 *secret*
 *password*
+*.md
 
 # API config with keys
 config.json
